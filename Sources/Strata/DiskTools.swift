@@ -188,7 +188,12 @@ final class DiskTools {
         if path.isEmpty { path = "/" }
         if path == "~" { path = home } else if path.hasPrefix("~/") { path = home + path.dropFirst(1) }
         guard path.hasPrefix("/") else { throw Failure.notAbsolute(path) }
-        let standard = (path as NSString).standardizingPath
+        // Only "." and ".." are resolved: NSString.standardizingPath would also turn
+        // /private/var into /var, which the scan does not know.
+        var standard = URL(fileURLWithPath: path).standardized.path
+        for link in ["/var", "/tmp", "/etc"] where standard == link || standard.hasPrefix(link + "/") {
+            standard = "/private" + standard
+        }
         return standard.isEmpty ? "/" : standard
     }
 

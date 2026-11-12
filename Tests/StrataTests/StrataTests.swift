@@ -187,6 +187,8 @@ private func demoTools() -> DiskTools {
     #expect(cleanup.groups.contains { $0.folders == ["/Users/alex/Library/Developer/Xcode/DerivedData"] })
     #expect(throws: DiskTools.Failure.self) { try tools.showFolder("Library", limit: 5) }
     #expect(throws: DiskTools.Failure.self) { try tools.showFolder("/Volumes/Elsewhere", limit: 5) }
+    #expect(try tools.showFolder("/private/var", limit: 5).path == "/private/var")
+    #expect(try tools.showFolder("/var/", limit: 5).path == "/private/var")
 }
 
 @Test func theMCPServerOnlyOffersToolsThatRead() throws {
