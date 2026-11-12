@@ -9,13 +9,14 @@ import SwiftUI
 ///          [--size WxH] [--focus sub/folder] [--hover Name[/Inner]] [--tab cleanup]
 ///          [--state access|scanning] [--seconds N] [--move sub/folder --at SECONDS]
 ///          [--switch bubbles|flow --at SECONDS] [--menu disks|settings] [--extra-disks N] [--demo on]
-///          [--window on]
+///          [--window on] [--scale N]
 ///
 /// `--cache` names the saved scan; it is created by scanning `--scan` (default: the data
 /// volume) when missing. `--demo on` pictures a made-up disk instead (`DemoDisk`).
 /// `--state scanning` scans `--scan` for `--seconds` (default 6) and pictures the map as it
 /// stands at that moment. `--window on` draws it as a Mac window, with rounded corners, the
-/// window buttons and a shadow, on a transparent background.
+/// window buttons and a shadow, on a transparent background. `--scale` sets pixels per point
+/// (default 2).
 @MainActor
 enum Snapshot {
     static func run(_ arguments: [String]) -> Never {
@@ -105,7 +106,7 @@ enum Snapshot {
         let renderer = values["window"] != nil
             ? ImageRenderer(content: AnyView(WindowFrame(isDark: model.theme.isDark) { window }))
             : ImageRenderer(content: AnyView(window))
-        renderer.scale = 2
+        renderer.scale = Double(values["scale"] ?? "") ?? 2
         renderer.isOpaque = values["window"] == nil
         guard let image = renderer.cgImage,
               let png = NSBitmapImageRep(cgImage: image).representation(using: .png, properties: [:]) else {

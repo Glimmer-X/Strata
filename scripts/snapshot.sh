@@ -7,6 +7,7 @@
 #                                         [--state access|scanning] [--seconds 6]
 #                                         [--move sub/folder|.. --at 0.3] [--switch flow --at 0.3]
 #                                         [--menu disks|settings] [--extra-disks 2] [--demo on]
+#                                         [--window on] [--scale 3]
 set -euo pipefail
 source "${0:A:h}/_env.sh"
 
