@@ -5,7 +5,7 @@
 <h1 align="center">Strata</h1>
 
 <p align="center">
-  Mac のディスクを一枚の地図に。空き容量づくりも安心して。
+  Mac のディスク容量を可視化。空き容量づくりも安心して。
 </p>
 
 <p align="center">
@@ -99,3 +99,8 @@ Resources/     Info.plist、アイコン、文字列カタログ
 ## ライセンス
 
 [MIT](LICENSE)
+
+## 参考文献
+
+- M. Balzer, O. Deussen. [Voronoi Treemaps](https://graphics.uni-konstanz.de/publikationen/Balzer2005VoronoiTreemaps). IEEE Symposium on Information Visualization, 2005. [doi:10.1109/INFOVIS.2005.40](https://doi.org/10.1109/INFOVIS.2005.40)
+- B. Gregg. [Flame Graphs](https://www.brendangregg.com/flamegraphs.html).

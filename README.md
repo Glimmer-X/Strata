@@ -5,7 +5,7 @@
 <h1 align="center">Strata</h1>
 
 <p align="center">
-  A clear map of your Mac’s disk, and a safe way to make room.
+  Visualize your Mac’s disk space, and make room safely.
 </p>
 
 <p align="center">
@@ -99,3 +99,8 @@ Resources/     Info.plist, the icon and the string catalog.
 ## License
 
 [MIT](LICENSE)
+
+## References
+
+- M. Balzer and O. Deussen. [Voronoi Treemaps](https://graphics.uni-konstanz.de/publikationen/Balzer2005VoronoiTreemaps). IEEE Symposium on Information Visualization, 2005. [doi:10.1109/INFOVIS.2005.40](https://doi.org/10.1109/INFOVIS.2005.40)
+- B. Gregg. [Flame Graphs](https://www.brendangregg.com/flamegraphs.html).

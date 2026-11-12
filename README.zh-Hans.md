@@ -5,7 +5,7 @@
 <h1 align="center">Strata</h1>
 
 <p align="center">
-  把 Mac 的磁盘画成一张清楚的图，放心腾出空间。
+  将 Mac 磁盘空间可视化，放心腾出空间。
 </p>
 
 <p align="center">
@@ -99,3 +99,8 @@ Resources/     Info.plist、图标和多语言文字
 ## 许可
 
 [MIT](LICENSE)
+
+## 参考
+
+- M. Balzer, O. Deussen. [Voronoi Treemaps](https://graphics.uni-konstanz.de/publikationen/Balzer2005VoronoiTreemaps). IEEE Symposium on Information Visualization, 2005. [doi:10.1109/INFOVIS.2005.40](https://doi.org/10.1109/INFOVIS.2005.40)
+- B. Gregg. [Flame Graphs](https://www.brendangregg.com/flamegraphs.html).
