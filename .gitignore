@@ -1,0 +1,23 @@
+# Build products (scripts/clean.sh removes them)
+.build/
+build/
+
+# SwiftPM / Xcode
+.swiftpm/
+Package.resolved
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+DerivedData/
+
+# Working notes, design drafts and research tools, kept out of the public repository
+internal/
+
+# Local settings and secrets
+local.env
+
+# macOS
+.DS_Store
+._*
+
+node_modules/
