@@ -51,6 +51,14 @@ Safe to Clean gathers what macOS and your tools rebuild by themselves when they 
 
 Strata reads file names and sizes. It never opens a file and never connects to the internet. To see the whole startup disk it needs Full Disk Access, which you turn on in System Settings › Privacy & Security; the app points you there on first launch.
 
+## Use it with an AI assistant
+
+Strata can answer an assistant's questions about your disk through the Model Context Protocol: what is in a folder, where the largest files are, what is safe to clean. It only looks and cannot delete anything. To add it to Claude Code:
+
+```bash
+claude mcp add strata -- /Applications/Strata.app/Contents/MacOS/Strata --mcp
+```
+
 ## Install
 
 Strata needs macOS 15 Sequoia or later.

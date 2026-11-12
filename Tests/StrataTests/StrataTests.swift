@@ -151,3 +151,67 @@ private struct Home {
 private func isIdentity(_ t: CGAffineTransform) -> Bool {
     abs(t.a - 1) < 1e-6 && abs(t.d - 1) < 1e-6 && abs(t.b) < 1e-6 && abs(t.c) < 1e-6 && abs(t.tx) < 1e-6 && abs(t.ty) < 1e-6
 }
+
+// MARK: MCP server
+
+private func demoTools() -> DiskTools {
+    let tree = DemoDisk.tree(scannedAt: Date())
+    let scan = DiskTools.Scan(tree: tree, catalog: MapCatalog(tree: tree, volume: DemoDisk.volume), isFresh: false)
+    return DiskTools(scans: [scan], home: DemoDisk.home)
+}
+
+@Test func aFolderIsListedLargestFirstWithFinderPaths() throws {
+    let folder = try demoTools().showFolder("~/Library", limit: 3)
+    #expect(folder.path == "/Users/alex/Library")
+    #expect(folder.items.map(\.name) == ["Application Support", "Developer", "Containers"])
+    #expect(folder.items[1].path == "/Users/alex/Library/Developer")
+    #expect(folder.notShown?.count ?? 0 > 0)
+    #expect(folder.disk == nil)
+    #expect(try demoTools().showFolder("/", limit: 5).disk != nil)
+}
+
+@Test func theLargestFoldersAreWhereSpaceGathers() throws {
+    let found = try demoTools().findLargest("~", kind: .folders, limit: 4)
+    // The photo library is mostly its originals folder, so the originals count, not the wrappers.
+    #expect(found.items.contains { $0.path == "/Users/alex/Pictures/Photos Library.photoslibrary/originals" })
+    #expect(!found.items.contains { $0.name == "Photos Library.photoslibrary" })
+    #expect(!found.items.contains { $0.name == "Pictures" })
+}
+
+@Test func searchingByNameAndAskingForCleanup() throws {
+    let tools = demoTools()
+    let caches = try tools.findByName("cache", in: "~", limit: 50)
+    #expect(caches.items.contains { $0.path == "/Users/alex/Library/Caches" })
+    #expect(caches.items.contains { $0.path == "/Users/alex/.cache" })
+    let cleanup = try tools.cleanupSuggestions(localSnapshots: { 0 })
+    #expect(cleanup.groups.contains { $0.folders == ["/Users/alex/Library/Developer/Xcode/DerivedData"] })
+    #expect(throws: DiskTools.Failure.self) { try tools.showFolder("Library", limit: 5) }
+    #expect(throws: DiskTools.Failure.self) { try tools.showFolder("/Volumes/Elsewhere", limit: 5) }
+}
+
+@Test func theMCPServerOnlyOffersToolsThatRead() throws {
+    let session = MCPServer.Session(tools: demoTools())
+    let start = session.handle(#"{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"protocolVersion":"2025-03-26"}}"#)
+    #expect((start?["result"] as? [String: Any])?["protocolVersion"] as? String == "2025-03-26")
+    #expect(session.handle(#"{"jsonrpc":"2.0","method":"notifications/initialized"}"#) == nil)
+
+    let list = session.handle(#"{"jsonrpc":"2.0","id":2,"method":"tools/list"}"#)
+    let tools = try #require((list?["result"] as? [String: Any])?["tools"] as? [[String: Any]])
+    #expect(tools.count == 6)
+    for tool in tools {
+        let hints = try #require(tool["annotations"] as? [String: Any])
+        #expect(hints["readOnlyHint"] as? Bool == true)
+        #expect(hints["destructiveHint"] as? Bool == false)
+        let name = try #require(tool["name"] as? String)
+        #expect(!["delete", "remove", "trash", "move", "clean_up", "empty"].contains { name.contains($0) })
+    }
+
+    let call = session.handle(#"{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"show_folder","arguments":{"path":"~","limit":2}}}"#)
+    let result = try #require(call?["result"] as? [String: Any])
+    #expect(result["isError"] == nil)
+    let text = try #require((result["content"] as? [[String: Any]])?.first?["text"] as? String)
+    #expect(text.contains("\"path\":\"/Users/alex\""))
+
+    let unknown = session.handle(#"{"jsonrpc":"2.0","id":4,"method":"resources/list"}"#)
+    #expect((unknown?["error"] as? [String: Any])?["code"] as? Int == -32601)
+}

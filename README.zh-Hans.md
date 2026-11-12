@@ -51,6 +51,14 @@ Strata 把整块磁盘画成一张图。每个文件夹是一个气泡，大小�
 
 Strata 只读取文件名和大小，从不打开文件，也从不联网。要看到整块启动磁盘，需要在「系统设置 › 隐私与安全性」里打开「完全磁盘访问权限」，第一次打开时 App 会带你过去。
 
+## 交给 AI 助手来看
+
+Strata 可以通过 MCP（Model Context Protocol）回答 AI 助手关于磁盘的问题，比如某个文件夹里有什么、最大的文件在哪、哪些东西可以清理。它只能看，不能删除任何东西。在 Claude Code 里添加：
+
+```bash
+claude mcp add strata -- /Applications/Strata.app/Contents/MacOS/Strata --mcp
+```
+
 ## 安装
 
 需要 macOS 15 Sequoia 或更新版本。
