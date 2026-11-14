@@ -1,3 +1,4 @@
+import AppKit
 import ScanCore
 import SwiftUI
 
@@ -10,6 +11,7 @@ struct RootView: View {
         let theme = model.theme
         ZStack(alignment: .topLeading) {
             theme.background.color.ignoresSafeArea()
+            WindowGrip()
             switch model.phase {
             case .checking:
                 EmptyView()
@@ -43,6 +45,31 @@ struct RootView: View {
         .foregroundStyle(theme.text.color)
         .preferredColorScheme(theme.isDark ? .dark : .light)
         .ignoresSafeArea()
+    }
+}
+
+/// The strip along the top of the window, as tall as the bar: the window can be dragged
+/// from any empty spot in it, not only from the thin title bar macOS keeps. It sits behind
+/// everything, so buttons in the bar still get their clicks.
+private struct WindowGrip: View {
+    var body: some View {
+        Color.clear
+            .frame(maxWidth: .infinity)
+            .frame(height: Metrics.barHeight)
+            .contentShape(Rectangle())
+            .gesture(WindowDragGesture())
+            .allowsWindowActivationEvents(true)
+            .onTapGesture(count: 2) { Self.titleBarDoubleClick() }
+    }
+
+    /// Does what a double-click on a title bar does, as chosen in System Settings.
+    private static func titleBarDoubleClick() {
+        guard let window = NSApp.keyWindow else { return }
+        switch UserDefaults.standard.string(forKey: "AppleActionOnDoubleClick") {
+        case "Minimize": window.performMiniaturize(nil)
+        case "None": break
+        default: window.performZoom(nil)
+        }
     }
 }
 

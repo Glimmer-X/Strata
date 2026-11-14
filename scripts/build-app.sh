@@ -58,10 +58,19 @@ if [[ " $* " == *" --install "* ]]; then
     mkdir -p "$DEST_DIR"
     DEST="$DEST_DIR/Strata.app"
 
-    if pgrep -x Strata >/dev/null; then
+    # Only the app itself has to quit. `Strata --mcp` servers started by AI assistants keep
+    # running the old copy until they restart, which is fine.
+    app_running() {
+        local pid
+        for pid in $(pgrep -x Strata); do
+            [[ "$(ps -o args= -p "$pid")" == *--mcp* ]] || return 0
+        done
+        return 1
+    }
+    if app_running; then
         osascript -e "tell application id \"$BUNDLE_ID\" to quit" >/dev/null 2>&1 || true
-        for _ in {1..20}; do pgrep -x Strata >/dev/null || break; sleep 0.25; done
-        if pgrep -x Strata >/dev/null; then
+        for _ in {1..20}; do app_running || break; sleep 0.25; done
+        if app_running; then
             echo "Strata is still running; quit it and re-run." >&2
             exit 1
         fi
