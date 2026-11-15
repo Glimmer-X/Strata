@@ -28,6 +28,7 @@ enum Film {
         /// Where the pointer is when, eased from one key to the next.
         var pointer: [Key]
         var events: [Event]
+        var intro: FilmIntro?
         var card: Card?
         /// Pixels rendered per pixel of the movie before scaling down, for smoother edges.
         var oversample: Double?
@@ -68,6 +69,8 @@ enum Film {
         var lines: [Line]
         /// Where the middle of the text is, from the top, in pixels.
         var centerY: Double
+        /// Shows the app's icon above the text.
+        var icon: Bool?
 
         struct Line: Decodable {
             var text: String
@@ -115,7 +118,10 @@ enum Film {
         model.presentDisks(DemoDisk.disks)
         model.clock = { now }
         model.buildsInline = true
-        model.motion.begin(.popIn, from: nil, at: start)
+        // With an opening, the map pops up once the window shows.
+        model.motion.begin(.popIn, from: nil, at: start.addingTimeInterval(script.intro?.reveal ?? 0))
+        let size = CGSize(width: script.size[0], height: script.size[1])
+        let intro = script.intro.map { ($0, $0.layout(in: size)) }
 
         let width = Int(script.size[0]), height = Int(script.size[1])
         try? FileManager.default.removeItem(at: url)
@@ -183,7 +189,7 @@ enum Film {
             pointer.resolve(through: t) { place(of: $0, model: model, windowSize: windowSize) }
 
             let content = Frame(model: model, script: script, windowSize: windowSize, time: t,
-                                shot: camera.shot(at: t), backdrop: backdrop, pointer: location, clicks: clicks)
+                                shot: camera.shot(at: t), backdrop: backdrop, intro: intro, pointer: location, clicks: clicks)
             let renderer = ImageRenderer(content: content)
             renderer.scale = script.oversample ?? 2
             renderer.isOpaque = true
@@ -352,6 +358,7 @@ private struct Frame: View {
     let time: Double
     let shot: Film.Shot
     let backdrop: Backdrop
+    let intro: (FilmIntro, FilmIntro.Layout)?
     let pointer: CGPoint?
     let clicks: [(at: Double, location: CGPoint)]
 
@@ -367,9 +374,18 @@ private struct Frame: View {
                 .scaleEffect(shot.scale, anchor: .topLeading)
                 .offset(x: size.width / 2 - shot.x * shot.scale, y: size.height / 2 - shot.y * shot.scale)
                 .opacity(1 - cardIn)
+            if let (intro, layout) = intro, time < intro.vanish[1] + 0.5 {
+                FilmIntroView(intro: intro, layout: layout, theme: theme, time: time)
+            }
             if let card = script.card {
                 let textIn = ramp(time - card.at - 0.35, 0.7)
                 VStack(spacing: 0) {
+                    if card.icon == true, let icon = Bundle.main.image(forResource: "AppIcon") {
+                        Image(nsImage: icon).resizable().interpolation(.high)
+                            .frame(width: 260, height: 260)
+                            .padding(.bottom, 26)
+                            .scaleEffect(0.9 + 0.1 * Spring.response(time - card.at - 0.3))
+                    }
                     ForEach(Array(card.lines.enumerated()), id: \.offset) { _, line in
                         Text(line.text)
                             .font(.system(size: line.size, weight: line.weight == "semibold" ? .semibold : .regular))
@@ -392,6 +408,10 @@ private struct Frame: View {
             ZStack(alignment: .topLeading) {
                 RootView(model: model, live: false)
                     .frame(width: windowSize.width, height: windowSize.height)
+                // Until the content appears the window stands empty.
+                if let (intro, _) = intro {
+                    model.theme.background.color.opacity(1 - ramp(time - intro.reveal, 0.6))
+                }
                 PointerLayer(pointer: pointer, clicks: clicks, time: time, theme: model.theme)
             }
             .frame(width: windowSize.width, height: windowSize.height, alignment: .topLeading)
