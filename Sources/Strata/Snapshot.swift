@@ -183,8 +183,10 @@ enum Snapshot {
 
 /// The window around a still picture: rounded corners, the three window buttons where macOS
 /// puts them over a window without a title bar, a thin edge and a soft shadow.
-private struct WindowFrame<Content: View>: View {
+struct WindowFrame<Content: View>: View {
     let isDark: Bool
+    /// Room around the window for its shadow, so a still picture can be cropped to it.
+    var padded = true
     @ViewBuilder let content: Content
 
     var body: some View {
@@ -204,6 +206,6 @@ private struct WindowFrame<Content: View>: View {
             .clipShape(shape)
             .overlay(shape.strokeBorder(isDark ? Color.white.opacity(0.14) : Color.black.opacity(0.12), lineWidth: 1))
             .shadow(color: .black.opacity(0.28), radius: 28, y: 14)
-            .padding(.horizontal, 56).padding(.top, 36).padding(.bottom, 76)
+            .padding(.horizontal, padded ? 56 : 0).padding(.top, padded ? 36 : 0).padding(.bottom, padded ? 76 : 0)
     }
 }

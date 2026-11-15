@@ -140,6 +140,10 @@ final class AppModel: ObservableObject {
     var home = NSHomeDirectory()
     /// False for still pictures: choices are not saved and the system is not watched.
     let interactive: Bool
+    /// The time movements start from. A film made frame by frame (`Film`) runs its own.
+    var clock: () -> Date = { Date() }
+    /// Lays out new pictures at once instead of in the background, for films.
+    var buildsInline = false
 
     nonisolated static let smallestKept: UInt64 = 1_000_000
     /// Saved results older than this are refreshed quietly when they are shown.
@@ -470,6 +474,10 @@ final class AppModel: ObservableObject {
         generation += 1
         let wanted = generation
         let focus = focus, size = mapSize, mode = mode
+        if buildsInline {
+            install(MapScene.build(mode, catalog: catalog, focus: focus, size: size), change: change)
+            return
+        }
         Task.detached(priority: .userInitiated) {
             let scene = MapScene.build(mode, catalog: catalog, focus: focus, size: size)
             await MainActor.run {
@@ -505,7 +513,7 @@ final class AppModel: ObservableObject {
         flowFocus = nil
         highlighted = nil
         pointer.info = nil
-        motion.begin(transition, from: previous, flowFocus: leavingFocus)
+        motion.begin(transition, from: previous, flowFocus: leavingFocus, at: clock())
         animating = true
     }
 
